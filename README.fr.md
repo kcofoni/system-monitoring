@@ -5,9 +5,32 @@
 Ce code source permet, sur la machine où il est déployé, d'obtenir des informations sur la consommation cpu, mémoire, disque et quelques autres éléments de métrologie pour les publier dans un topic *mqtt* ou tout simplement les afficher sur la *sortie standard*.
 
 ## Installation
-Le code peut être installé dans un répertoire `scripts/monitoring` d'un utilisateur de la machine, par exemple `/home/pi/scripts/monitoring`. Il est conseillé de créer un environnement virtuel python sous le répertoire `monitoring` :
+
+### Prérequis
+Le code proposé ici a été testé sur un raspberry pi 4 modèle B installé avec debian 12.
+```bash
+pi@rasp39:~ $ cat /etc/os-release
+PRETTY_NAME="Debian GNU/Linux 12 (bookworm)"
+NAME="Debian GNU/Linux"
+VERSION_ID="12"
+VERSION="12 (bookworm)"
+VERSION_CODENAME=bookworm
+ID=debian
+HOME_URL="https://www.debian.org/"
+SUPPORT_URL="https://www.debian.org/support"
+BUG_REPORT_URL="https://bugs.debian.org/"
+``` 
+```bash
+pi@rasp39:~ $ python3 --version
+Python 3.11.2
 ```
+### Procédure d'installation
+Le code peut être installé dans un répertoire `scripts/monitoring` d'un utilisateur de la machine, par exemple `/home/pi/scripts/monitoring`. Il est conseillé de créer un environnement virtuel python sous le répertoire `monitoring` puis d'y installer les librairies requises :
+```bash
 python -m venv env
+source /home/pi/scripts/monitoring/env/bin/activate
+pip install psutil paho-mqtt
+pip freeze > requirements.txt
 ```
 
 Il faut ensuite créer un fichier `.env_mon` dans ce même répertoire. Il suffit pour cela de s'appuyer sur l'exemple donné par le fichier [env_mon](env_mon) qui peut servir de base. On indiquera notamment l'adresse du broker MQTT (`MQTT_BROKER`) et les éléments de login (`MQTT_USER`, `MQTT_PASSWORD`) ainsi que la localisation du fichier de log (`MON_LOG_FILE`).
@@ -21,7 +44,7 @@ Ce dernier utilise la librairie [psutil](https://psutil.readthedocs.io/) pour ob
 Pour l'invoquer il faut commencer par activer l'environnement virtuel et "sourcer" le `.env_mon` :  
 
 ```bash
-pi@rasp39:~/scripts/monitoring $ source /home/pi/scripts/monitoring/env/bin/activate`
+pi@rasp39:~/scripts/monitoring $ source /home/pi/scripts/monitoring/env/bin/activate
 (env) pi@rasp39:~/scripts/monitoring $ source .env_mon
 ```
 

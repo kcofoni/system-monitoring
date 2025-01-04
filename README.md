@@ -6,9 +6,32 @@
 This source code allows, on the machine where it is deployed, to retrieve information about CPU, memory, disk usage, and some other metrics, and either publish them to an *mqtt* topic or simply display them on the *standard output*.
 
 ## Setup
-The code can be installed in a `scripts/monitoring` directory for a user on the machine, for example `/home/pi/scripts/monitoring`. We recommend creating a virtual python environment under the `monitoring` directory:
+
+### Prerequisites
+The code proposed here has been tested on a raspberry pi 4 model B installed with debian 12.
+```bash
+pi@rasp39:~ $ cat /etc/os-release
+PRETTY_NAME="Debian GNU/Linux 12 (bookworm)"
+NAME="Debian GNU/Linux"
+VERSION_ID="12"
+VERSION="12 (bookworm)"
+VERSION_CODENAME=bookworm
+ID=debian
+HOME_URL="https://www.debian.org/"
+SUPPORT_URL="https://www.debian.org/support"
+BUG_REPORT_URL="https://bugs.debian.org/"
+``` 
+```bash
+pi@rasp39:~ $ python3 --version
+Python 3.11.2
 ```
+### Installation procedure
+The code can be installed in a `scripts/monitoring` directory for a user on the machine, for example `/home/pi/scripts/monitoring`. We recommend creating a virtual python environment under the `monitoring` directory and install the required librairies:
+```bash
 python -m venv env
+source /home/pi/scripts/monitoring/env/bin/activate
+pip install psutil paho-mqtt
+pip freeze > requirements.txt
 ```
 
 Next, create a `.env_mon` file in this directory to configure the environment variables needed for the script to function properly. An example is given by the [env_mon](env_mon) file that can be used as a template.
