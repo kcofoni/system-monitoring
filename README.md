@@ -26,7 +26,7 @@ source .env_mon
 python mon.py --no-mqtt
 ```
 This displays the data on the standard output as shown below:
-```
+```json
 {
     "cpu_temperature": 34.08,
     "cpu_system_usage": 1.0,

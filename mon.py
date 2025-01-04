@@ -100,7 +100,7 @@ def get_system_usage():
 def publish_to_mqtt(data):
     """Publishes data to the MQTT broker with authentication if necessary"""
     # Create an MQTT client with the modern version of the protocol
-    client = mqtt.Client(protocol=mqtt.MQTTv311)  # Use MQTTv5 if necessary
+    client = mqtt.Client(protocol=mqtt.MQTTv5)  # Use MQTTv311 if necessary
 
     # Add authentication if a user/password is provided
     if MQTT_USER and MQTT_PASSWORD:
@@ -110,7 +110,7 @@ def publish_to_mqtt(data):
 
     # Publish data
     json_data = json.dumps(data)
-    client.publish(MQTT_TOPIC, json_data)
+    client.publish(MQTT_TOPIC, json_data, retain=True)
     log_message(f"Published via MQTT : {json_data}")
     client.disconnect()
 
