@@ -10,10 +10,10 @@ Le code peut être installé dans un répertoire `scripts/monitoring` d'un utili
 python -m venv env
 ```
 
-Il faut ensuite créer un fichier `.env_mon` dans ce même répertoire. Il suffit pour cela de s'appuyer sur l'exemple donné par le fichier `env_mon` qui peut servir de base. On indiquera notamment l'adresse du broker MQTT (`MQTT_BROKER`) et les éléments de login (`MQTT_USER`, `MQTT_PASSWORD`) ainsi que la localisation du fichier de log (`MON_LOG_FILE`).
+Il faut ensuite créer un fichier `.env_mon` dans ce même répertoire. Il suffit pour cela de s'appuyer sur l'exemple donné par le fichier [env_mon](env_mon) qui peut servir de base. On indiquera notamment l'adresse du broker MQTT (`MQTT_BROKER`) et les éléments de login (`MQTT_USER`, `MQTT_PASSWORD`) ainsi que la localisation du fichier de log (`MON_LOG_FILE`).
 
 ## Fonctionnement
-Le fichier principal est le programme python `mon.pi`.
+Le fichier principal est le programme python [mon.py](mon.py).
 Ce dernier utilise la librairie [psutil](https://psutil.readthedocs.io/) pour obtenir des informations sur l'utilisation du système (CPU, memory, disks, network, sensors).
 
 ### Invocation en ligne de commande
@@ -52,7 +52,7 @@ On peut l'invoquer pour publier sur le topic mqtt (sans paramètre) :
 
 ### Intégration dans un crontab
 
-Le fichier `run_mon.sh` qui successivement source les variables d'environnement, active l'environnement, exécute le programme python puis désactive l'environnement, a été créé pour pour l'intégration dans le `cron` comme suit :
+Le fichier [run_mon.sh](run_mon.sh) qui successivement source les variables d'environnement, active l'environnement, exécute le programme python puis désactive l'environnement, a été créé pour pour l'intégration dans le `cron` comme suit :
 
 ```bash
 (env) pi@rasp39:~/scripts/monitoring $ crontab -l
@@ -62,7 +62,7 @@ Le fichier `run_mon.sh` qui successivement source les variables d'environnement,
 La deuxième ligne (`tail  -n 100...`) permet de ne conserver que 100 lignes de log, afin de contenir la taille du fichier.
 
 Une ligne de log ressemble à cela :
-```json
+```bash
 [2025-01-03 14:34:03] Published via MQTT : {"cpu_temperature": 33.1, "cpu_system_usage": 0.2, "cpu_user_usage": 0.0, "cpu_idle_usage": 99.8, "memory_usage_percent": 46.6, "mem_usage_total": 3790.9, "mem_usage_available": 2023.4, "mem_usage_used": 1669.5, "mem_usage_free": 1011.6, "hdd_usage_percent": 1.3, "uptime": "1 day, 16:15:04", "boot_time": "2025-01-01T22:18:59+01:00"}
 ```
 ## Requirements
@@ -86,5 +86,109 @@ Les données suivantes sont collectées et publiées:
 - Temps de fonctionnement du système.
 - Autres mesures personnalisées configurées dans le script.
 
+## Exemple d'intégration : Home Assistant
+
+En utilisant l'intégration MQTT de Home Assistant on peut créer un appareil correspondant au serveur monitoré et des capteurs pour chacune des métriques. Compléter le fichier de configuration comme suit.
+```yaml
+mqtt:
+  sensor:
+    - name: "CPU Temperature"
+      state_topic: "rasp39/system"
+      value_template: "{{ value_json.cpu_temperature }}"
+      unit_of_measurement: "°C"
+      device_class: "temperature"
+      state_class: "measurement"
+      unique_id: "rasp39_cpu_temp"
+      device:
+        identifiers: "rasp39"
+        name: "Raspberry Pi 39"
+        manufacturer: "Raspberry Pi Ltd"
+        model: "PI4 modèle B"
+    - name: "CPU System Usage"
+      state_topic: "rasp39/system"
+      value_template: "{{ value_json.cpu_system_usage }}"
+      unit_of_measurement: "%"
+      state_class: "measurement"
+      unique_id: "rasp39_cpu_system"
+      device:
+        identifiers: "rasp39"
+    - name: "CPU User Usage"
+      state_topic: "rasp39/system"
+      value_template: "{{ value_json.cpu_user_usage }}"
+      unit_of_measurement: "%"
+      state_class: "measurement"
+      unique_id: "rasp39_cpu_user"
+      device:
+        identifiers: "rasp39"
+    - name: "CPU Idle Usage"
+      state_topic: "rasp39/system"
+      value_template: "{{ value_json.cpu_idle_usage }}"
+      unit_of_measurement: "%"
+      state_class: "measurement"
+      unique_id: "rasp39_cpu_idle"
+      device:
+        identifiers: "rasp39"
+    - name: "Memory Usage Percent"
+      state_topic: "rasp39/system"
+      value_template: "{{ value_json.memory_usage_percent }}"
+      unit_of_measurement: "%"
+      state_class: "measurement"
+      unique_id: "rasp39_memory_usage"
+      device:
+        identifiers: "rasp39"
+    - name: "Memory Total"
+      state_topic: "rasp39/system"
+      value_template: "{{ value_json.mem_usage_total }}"
+      unit_of_measurement: "Mb"
+      state_class: "measurement"
+      unique_id: "rasp39_memory_total"
+      device:
+        identifiers: "rasp39"
+    - name: "Memory Available"
+      state_topic: "rasp39/system"
+      value_template: "{{ value_json.mem_usage_available }}"
+      unit_of_measurement: "Mb"
+      state_class: "measurement"
+      unique_id: "rasp39_memory_available"
+      device:
+        identifiers: "rasp39"
+    - name: "Memory Used"
+      state_topic: "rasp39/system"
+      value_template: "{{ value_json.mem_usage_used }}"
+      unit_of_measurement: "Mb"
+      state_class: "measurement"
+      unique_id: "rasp39_memory_used"
+      device:
+        identifiers: "rasp39"
+    - name: "Memory Free"
+      state_topic: "rasp39/system"
+      value_template: "{{ value_json.mem_usage_free }}"
+      unit_of_measurement: "Mb"
+      state_class: "measurement"
+      unique_id: "rasp39_memory_free"
+      device:
+        identifiers: "rasp39"
+    - name: "HDD Usage Percent"
+      state_topic: "rasp39/system"
+      value_template: "{{ value_json.hdd_usage_percent }}"
+      unit_of_measurement: "%"
+      state_class: "measurement"
+      unique_id: "rasp39_hdd_usage"
+      device:
+        identifiers: "rasp39"
+    - name: "Uptime"
+      state_topic: "rasp39/system"
+      value_template: "{{ value_json.uptime }}"
+      unique_id: "rasp39_uptime"
+      device:
+        identifiers: "rasp39"
+    - name: "Boot Time"
+      state_topic: "rasp39/system"
+      value_template: "{{ value_json.boot_time }}"
+      unique_id: "rasp39_boot_time"
+      device:
+        identifiers: "rasp39"
+```
+
 ## License
-Ce projet est placé sous la licence MIT. Voir le fichier `LICENSE` pour plus de détails.
+Ce projet est placé sous la licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.

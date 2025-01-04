@@ -11,10 +11,10 @@ The code can be installed in a `scripts/monitoring` directory for a user on the 
 python -m venv env
 ```
 
-Next, create a `.env_mon` file in this directory to configure the environment variables needed for the script to function properly. An example is given by the `env_mon` file that can be used as a template.
+Next, create a `.env_mon` file in this directory to configure the environment variables needed for the script to function properly. An example is given by the [env_mon](env_mon) file that can be used as a template.
 
 ## Usage
-The main file is the python script `mon.pi`. The latter uses [psutil](https://psutil.readthedocs.io/) library to obtain information on system usage (CPU, memory, disks, network, sensors).
+The main file is the python script [mon.py](mon.py). The latter uses [psutil](https://psutil.readthedocs.io/) library to obtain information on system usage (CPU, memory, disks, network, sensors).
 
 ### Command line invocation
 Before running the script, please activate the *virtual environment* and source the *env* file (`.env_mon`)
@@ -51,7 +51,7 @@ By default (without any command line parameter), the script transmits informatio
 ### Integration within a cron job
 
 You can also configure the script to run periodically using a cron job or a similar scheduling tool.
-The `run_mon.sh` file, which successively sources the environment variables, activates the environment, executes the python program and then deactivates the environment, was created for that:
+The [run_mon.sh](run_mon.sh) file, which successively sources the environment variables, activates the environment, executes the python program and then deactivates the environment, was created for that:
 
 ```bash
 (env) pi@rasp39:~/scripts/monitoring $ crontab -l
@@ -61,7 +61,7 @@ The `run_mon.sh` file, which successively sources the environment variables, act
 The second line (`tail -n 100...`) allows you to keep only 100 log lines, in order to contain the file size.
 
 A log line looks like this:
-```json
+```bash
 [2025-01-03 14:34:03] Published via MQTT : {"cpu_temperature": 33.1, "cpu_system_usage": 0.2, "cpu_user_usage": 0.0, "cpu_idle_usage": 99.8, "memory_usage_percent": 46.6, "mem_usage_total": 3790.9, "mem_usage_available": 2023.4, "mem_usage_used": 1669.5, "mem_usage_free": 1011.6, "hdd_usage_percent": 1.3, "uptime": "1 day, 16:15:04", "boot_time": "2025-01-01T22:18:59+01:00"}
 ```
 ## Configuration
@@ -94,5 +94,109 @@ The following metrics are collected and published:
 - System uptime.
 - Other custom metrics as configured in the script.
 
+## Exemple of integration : Home Assistant
+
+Using Home Assistant's MQTT integration, you can create a device corresponding to the server being monitored, and sensors for each metric. Complete your configuration file as illustrated below.
+```yaml
+mqtt:
+  sensor:
+    - name: "CPU Temperature"
+      state_topic: "rasp39/system"
+      value_template: "{{ value_json.cpu_temperature }}"
+      unit_of_measurement: "°C"
+      device_class: "temperature"
+      state_class: "measurement"
+      unique_id: "rasp39_cpu_temp"
+      device:
+        identifiers: "rasp39"
+        name: "Raspberry Pi 39"
+        manufacturer: "Raspberry Pi Ltd"
+        model: "PI4 modèle B"
+    - name: "CPU System Usage"
+      state_topic: "rasp39/system"
+      value_template: "{{ value_json.cpu_system_usage }}"
+      unit_of_measurement: "%"
+      state_class: "measurement"
+      unique_id: "rasp39_cpu_system"
+      device:
+        identifiers: "rasp39"
+    - name: "CPU User Usage"
+      state_topic: "rasp39/system"
+      value_template: "{{ value_json.cpu_user_usage }}"
+      unit_of_measurement: "%"
+      state_class: "measurement"
+      unique_id: "rasp39_cpu_user"
+      device:
+        identifiers: "rasp39"
+    - name: "CPU Idle Usage"
+      state_topic: "rasp39/system"
+      value_template: "{{ value_json.cpu_idle_usage }}"
+      unit_of_measurement: "%"
+      state_class: "measurement"
+      unique_id: "rasp39_cpu_idle"
+      device:
+        identifiers: "rasp39"
+    - name: "Memory Usage Percent"
+      state_topic: "rasp39/system"
+      value_template: "{{ value_json.memory_usage_percent }}"
+      unit_of_measurement: "%"
+      state_class: "measurement"
+      unique_id: "rasp39_memory_usage"
+      device:
+        identifiers: "rasp39"
+    - name: "Memory Total"
+      state_topic: "rasp39/system"
+      value_template: "{{ value_json.mem_usage_total }}"
+      unit_of_measurement: "Mb"
+      state_class: "measurement"
+      unique_id: "rasp39_memory_total"
+      device:
+        identifiers: "rasp39"
+    - name: "Memory Available"
+      state_topic: "rasp39/system"
+      value_template: "{{ value_json.mem_usage_available }}"
+      unit_of_measurement: "Mb"
+      state_class: "measurement"
+      unique_id: "rasp39_memory_available"
+      device:
+        identifiers: "rasp39"
+    - name: "Memory Used"
+      state_topic: "rasp39/system"
+      value_template: "{{ value_json.mem_usage_used }}"
+      unit_of_measurement: "Mb"
+      state_class: "measurement"
+      unique_id: "rasp39_memory_used"
+      device:
+        identifiers: "rasp39"
+    - name: "Memory Free"
+      state_topic: "rasp39/system"
+      value_template: "{{ value_json.mem_usage_free }}"
+      unit_of_measurement: "Mb"
+      state_class: "measurement"
+      unique_id: "rasp39_memory_free"
+      device:
+        identifiers: "rasp39"
+    - name: "HDD Usage Percent"
+      state_topic: "rasp39/system"
+      value_template: "{{ value_json.hdd_usage_percent }}"
+      unit_of_measurement: "%"
+      state_class: "measurement"
+      unique_id: "rasp39_hdd_usage"
+      device:
+        identifiers: "rasp39"
+    - name: "Uptime"
+      state_topic: "rasp39/system"
+      value_template: "{{ value_json.uptime }}"
+      unique_id: "rasp39_uptime"
+      device:
+        identifiers: "rasp39"
+    - name: "Boot Time"
+      state_topic: "rasp39/system"
+      value_template: "{{ value_json.boot_time }}"
+      unique_id: "rasp39_boot_time"
+      device:
+        identifiers: "rasp39"
+```
+
 ## License
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
