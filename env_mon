@@ -4,3 +4,4 @@ export MQTT_USER="kcofoni"
 export MQTT_TOPIC="myhost/system"
 export MQTT_PASSWORD="xyixiugxxiubx"
 export MON_LOG_FILE="/home/pi/scripts/monitoring/mon.log"
+alias python='python3'
