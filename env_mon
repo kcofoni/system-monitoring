@@ -1,7 +1,6 @@
 # this file is a template of the .env_mon file
 export MQTT_BROKER="192.168.1.100"
-export MQTT_USER="kcofoni"
+export MQTT_USER="myuser"
 export MQTT_TOPIC="myhost/system"
-export MQTT_PASSWORD="xyixiugxxiubx"
-export MON_LOG_FILE="/home/pi/scripts/monitoring/mon.log"
+export MQTT_PASSWORD="mypassword"
 alias python='python3'

@@ -5,6 +5,7 @@ import os
 import psutil
 import json
 import argparse
+import sys
 from datetime import timedelta, datetime, timezone
 import paho.mqtt.client as mqtt # type: ignore
 import time
@@ -21,13 +22,11 @@ MQTT_PORT = int(os.getenv("MQTT_PORT", 1883))  # Default port
 MQTT_TOPIC = os.getenv("MQTT_TOPIC", "rasp39/system")  # Default topic
 MQTT_USER = os.getenv("MQTT_USER", "utilisateur")  # User name provided by environment
 MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", "motdepasse")  # Password provided by environment
-MON_LOG_FILE = os.getenv("MON_LOG_FILE", "/home/kcofoni/scripts/monitoring/mon.log")  # Name of log file provided by environment
 
 def log_message(message):
-    """Adds a message to the log file with a timestamp."""
+    """Logs a message to stdout with a timestamp."""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    with open(MON_LOG_FILE, "a") as log_file:
-        log_file.write(f"[{timestamp}] {message}\n")
+    print(f"[{timestamp}] {message}")
 
 def get_cpu_temperature():
     """Reading CPU temperature via the system file"""
@@ -97,7 +96,7 @@ def get_system_usage():
     }
     return data
 
-def publish_to_mqtt(data):
+def publish_to_mqtt(json_output):
     """Publishes data to the MQTT broker with authentication if necessary"""
     # Create an MQTT client with the modern version of the protocol
     client = mqtt.Client(protocol=mqtt.MQTTv5)  # Use MQTTv311 if necessary
@@ -109,9 +108,7 @@ def publish_to_mqtt(data):
     client.connect(MQTT_BROKER, MQTT_PORT, 60)
 
     # Publish data
-    json_data = json.dumps(data)
-    client.publish(MQTT_TOPIC, json_data, retain=True)
-    log_message(f"Published via MQTT : {json_data}")
+    client.publish(MQTT_TOPIC, json_output, retain=True)
     client.disconnect()
 
 def main():
@@ -126,15 +123,24 @@ def main():
 
     # System data collection
     data = get_system_usage()
+    json_output = json.dumps(data)
 
     if args.no_mqtt:
         # Display data in JSON format
-        json_output = json.dumps(data, indent=4)
-        print(json_output)
         log_message(f"Test mode : JSON generated {json_output}")
     else:
-        # Publish data on MQTT
-        publish_to_mqtt(data)
+        try:
+            # Publish data to MQTT
+            publish_to_mqtt(json_output)
+            log_message(f"Published via MQTT : {json_output}")
+        except Exception as e:
+            # Handle exceptions and print to stderr
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            print(f"[{timestamp}] ERREUR : {e}", file=sys.stderr)
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(f"[{timestamp}] ERREUR CRITIQUE : {e}", file=sys.stderr)
