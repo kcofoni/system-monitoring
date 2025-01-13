@@ -136,11 +136,11 @@ def main():
         except Exception as e:
             # Handle exceptions and print to stderr
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            print(f"[{timestamp}] ERREUR : {e}", file=sys.stderr)
+            print(f"[{timestamp}] ERROR : {e}", file=sys.stderr)
 
 if __name__ == "__main__":
     try:
         main()
     except Exception as e:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        print(f"[{timestamp}] ERREUR CRITIQUE : {e}", file=sys.stderr)
+        print(f"[{timestamp}] CRITICAL ERROR : {e}", file=sys.stderr)
